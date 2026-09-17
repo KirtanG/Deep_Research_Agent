@@ -9,3 +9,8 @@ dependencies = [
     "markdownify>=1.2.3",
     "tavily-python>=0.8.3",
 ]
+
+[tool.ruff]
+# Add EXE002 to your existing ignored rules
+lint.ignore = ["EXE002"] 
+

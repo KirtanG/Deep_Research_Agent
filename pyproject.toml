@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
+plugins = "pydantic.mypy"
 dependencies = [
     "fastapi[standard]>=0.141.1",
     "markdownify>=1.2.3",
@@ -13,4 +14,3 @@ dependencies = [
 [tool.ruff]
 # Add EXE002 to your existing ignored rules
 lint.ignore = ["EXE002"] 
-

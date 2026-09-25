@@ -7,6 +7,9 @@ requires-python = ">=3.12"
 plugins = "pydantic.mypy"
 dependencies = [
     "fastapi[standard]>=0.141.1",
+    "langchain>=1.4.2",
+    "langchain-google-genai>=4.4.0",
+    "langgraph>=1.2.12",
     "markdownify>=1.2.3",
     "tavily-python>=0.8.3",
 ]

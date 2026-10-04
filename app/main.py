@@ -3,6 +3,10 @@
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 
+from app.core.config import get_settings
+
+settings = get_settings()  
+
 app: FastAPI = FastAPI()
 
 @app.get("/")

@@ -10,7 +10,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
 
-    google_api_key: str 
+    google_api_key: str
+
+    exa_api_key: str 
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env",

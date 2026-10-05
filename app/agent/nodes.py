@@ -1,5 +1,6 @@
 from langchain_core.runnables import RunnableConfig
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
+from langgraph.types import Send
 
 from app.agent.configuration import Configuration
 from app.agent.prompts import get_current_date, query_writer_instructions
@@ -52,5 +53,16 @@ async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGe
     )
 
     return generated_queries_state 
+
+def continue_to_web_research(state: QueryGenerationState)-> list[Send]:
+    """LangGraph node that sends the search queries to the web research node.
+
+    This is used to spawn n number of web research nodes, one for each search query.
+    """
+
+    return [
+        Send("web_research", {"search_query":search_query, "id": int(idx)})
+        for idx,search_query in enumerate(state["search_query"])
+    ]   
 
 

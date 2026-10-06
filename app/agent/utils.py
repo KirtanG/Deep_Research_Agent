@@ -1,8 +1,14 @@
+
+from typing import Any
+
+from crawl4ai import AsyncWebCrawler, BrowserConfig
 from exa_py import AsyncExa
+from joblib import Memory
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage
 
-from app.main import settings
+from app.core.config import get_settings
 
+memory = Memory(location="./app/__pycache__")
 
 def get_research_topic(messages: list[AnyMessage]) -> str:
     """
@@ -20,7 +26,10 @@ def get_research_topic(messages: list[AnyMessage]) -> str:
                 research_topic += f"Assistant: {message.content}\n"
     return research_topic
 
+#temporaraily cache the function to save api request credits
+@memory.cache
 async def search_exa(query:str):
+    settings = get_settings()
     exa_search = AsyncExa(api_key=settings.exa_api_key)
 
     result = await exa_search.search(

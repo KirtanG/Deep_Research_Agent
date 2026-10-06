@@ -1,8 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Literal
 
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Dynamically find the absolute path to the 'app' directory
@@ -13,6 +12,10 @@ class Settings(BaseSettings):
     google_api_key: str
 
     exa_api_key: str 
+
+    crawler_mode: Literal["cdp", "builtin"] = "builtin"
+    
+    crawler_cdp_url: str | None = None
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env",

@@ -7,7 +7,7 @@ from app.agent.prompts import get_current_date, query_writer_instructions
 from app.agent.schemas import SearchQueryList
 from app.agent.state import OverallState, QueryGenerationState
 from app.agent.utils import get_research_topic
-from app.main import settings
+from app.core.config import get_settings
 
 
 async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
@@ -25,6 +25,7 @@ async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGe
     """
 
     configurable = Configuration.from_runnable_config(config)
+    settings = get_settings()
 
     if state.get("initial_search_query_count") is None:
         state['initial_search_query_count'] = configurable.number_of_initial_queries
@@ -64,5 +65,3 @@ def continue_to_web_research(state: QueryGenerationState)-> list[Send]:
         Send("web_research", {"search_query":search_query, "id": int(idx)})
         for idx,search_query in enumerate(state["search_query"])
     ]   
-
-

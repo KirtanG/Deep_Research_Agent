@@ -3,11 +3,9 @@
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 
-from app.core.config import get_settings
+from app.core.lifecycle import lifespan
 
-settings = get_settings()  
-
-app: FastAPI = FastAPI()
+app: FastAPI = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 def health()  -> JSONResponse:

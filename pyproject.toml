@@ -6,7 +6,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 plugins = "pydantic.mypy"
 dependencies = [
+    "crawl4ai>=0.9.4",
     "fastapi[standard]>=0.141.1",
+    "joblib>=1.6.0",
     "langchain>=1.4.2",
     "langchain-exa>=1.1.0",
     "langchain-google-genai>=4.4.0",
@@ -19,3 +21,11 @@ dependencies = [
 [tool.ruff]
 # Add EXE002 to your existing ignored rules
 lint.ignore = ["EXE002"] 
+
+[tool.pyright]
+typeCheckingMode = "standard"
+reportUnknownVariableType = false
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnusedCallResult = false
+reportArgumentType = false

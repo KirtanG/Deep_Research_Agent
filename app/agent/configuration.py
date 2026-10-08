@@ -23,6 +23,11 @@ class Configuration(BaseModel):
         description="The name of the language model to use for the agent's answer."
     )
 
+    number_of_pages: int = Field(
+        default=5,
+        description="The Number of Pages to fetch in Exa Search."
+    )
+
     number_of_initial_queries: int = Field(
         default=1,
         description="The number of initial search queries to generate.",

@@ -1,7 +1,3 @@
-
-from typing import Any
-
-from crawl4ai import AsyncWebCrawler, BrowserConfig
 from exa_py import AsyncExa
 from joblib import Memory
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage
@@ -28,13 +24,15 @@ def get_research_topic(messages: list[AnyMessage]) -> str:
 
 #temporaraily cache the function to save api request credits
 @memory.cache
-async def search_exa(query:str):
+async def search_exa(query:str,no_of_pages: int):
     settings = get_settings()
     exa_search = AsyncExa(api_key=settings.exa_api_key)
 
-    result = await exa_search.search(
+    result = await exa_search.search_and_contents(
         query=query,
-        num_results=10
+        num_results=no_of_pages,
+        highlights = True,
+        
     )
 
     return result

@@ -3,9 +3,13 @@ from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
 from langgraph.types import Send
 
 from app.agent.configuration import Configuration
-from app.agent.prompts import get_current_date, query_writer_instructions
+from app.agent.prompts import (
+    get_current_date,
+    query_writer_instructions,
+    web_searcher_instructions,
+)
 from app.agent.schemas import SearchQueryList
-from app.agent.state import OverallState, QueryGenerationState
+from app.agent.state import OverallState, QueryGenerationState, WebSearchState
 from app.agent.utils import get_research_topic
 from app.core.config import get_settings
 
@@ -64,4 +68,10 @@ def continue_to_web_research(state: QueryGenerationState)-> list[Send]:
     return [
         Send("web_research", {"search_query":search_query, "id": int(idx)})
         for idx,search_query in enumerate(state["search_query"])
-    ]   
+    ]
+
+def web_research(state: WebSearchState, config: RunnableConfig) -> None:
+
+    configurable = Configuration.from_runnable_config(config)
+
+    current_date = get_current_date()

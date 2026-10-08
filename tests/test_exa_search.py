@@ -6,7 +6,7 @@ from app.agent.utils import search_exa
 async def main() -> None:
     query = "AWS ElasticCache"
 
-    results = await search_exa(query=query)
+    results = await search_exa(query=query,no_of_pages=10)
 
     print(results)
 

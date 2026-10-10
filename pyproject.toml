@@ -7,10 +7,10 @@ requires-python = ">=3.12"
 plugins = "pydantic.mypy"
 dependencies = [
     "crawl4ai>=0.9.4",
+    "exa-py>=2.25.0",
     "fastapi[standard]>=0.141.1",
     "joblib>=1.6.0",
     "langchain>=1.4.2",
-    "langchain-exa>=1.1.0",
     "langchain-google-genai>=4.4.0",
     "langgraph>=1.2.12",
     "markdownify>=1.2.3",

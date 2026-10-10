@@ -10,9 +10,20 @@ memory = Memory(location="./app/__pycache__")
 async def main() -> None:
     query = "Gemini 2.5 deprecation"
 
-    results = await search_exa(query=query)
+    response = await search_exa(query=query,no_of_pages=5)
 
-    print(results)
+    #rint(type(results))
+    #print(results)
+    for result in response.results:
+       print("===== Exa Results =====")
+       print(type(result))
+       print(result.title)
+       print(result.url)
+       print(result.highlights)
+       print(result.text)
+       print(result.published_date)
+       print("END")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

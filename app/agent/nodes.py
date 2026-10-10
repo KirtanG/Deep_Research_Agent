@@ -6,11 +6,11 @@ from app.agent.configuration import Configuration
 from app.agent.prompts import (
     get_current_date,
     query_writer_instructions,
-    web_searcher_instructions,
+    web_summariser_instructions,
 )
 from app.agent.schemas import SearchQueryList
 from app.agent.state import OverallState, QueryGenerationState, WebSearchState
-from app.agent.utils import get_research_topic
+from app.agent.utils import get_research_topic, search_exa
 from app.core.config import get_settings
 
 
@@ -70,8 +70,31 @@ def continue_to_web_research(state: QueryGenerationState)-> list[Send]:
         for idx,search_query in enumerate(state["search_query"])
     ]
 
-def web_research(state: WebSearchState, config: RunnableConfig) -> None:
+async def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState: 
 
     configurable = Configuration.from_runnable_config(config)
 
     current_date = get_current_date()
+
+    response = await search_exa(state["search_query"],configurable.number_of_pages)
+    
+    sources_gathered = []
+
+    source_content = []
+
+    for index,result in enumerate(response.results):
+        short_url = f"[{state['id']}-{index}]"
+        sources_gathered.append({
+            "short_url": short_url,
+            "value":f"{result.url}"
+        })
+
+        source_content.append(f"ID:{short_url}\nContent:\n{result.text}")
+        
+    content = "\n\n".join(source_content)
+
+    
+    return {
+        "sources_gathered": sources_gathered, 
+        "search_query":[state["search_query"]]
+    }  

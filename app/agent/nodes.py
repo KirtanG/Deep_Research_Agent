@@ -1,3 +1,6 @@
+from datetime import datetime
+from pydoc import tempfilepager
+
 from langchain_core.runnables import RunnableConfig
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
 from langgraph.types import Send
@@ -73,28 +76,78 @@ def continue_to_web_research(state: QueryGenerationState)-> list[Send]:
 async def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState: 
 
     configurable = Configuration.from_runnable_config(config)
+    settings = get_settings()
 
     current_date = get_current_date()
 
     response = await search_exa(state["search_query"],configurable.number_of_pages)
     
+    extracted_results = []
     sources_gathered = []
-
     source_content = []
 
-    for index,result in enumerate(response.results):
-        short_url = f"[{state['id']}-{index}]"
-        sources_gathered.append({
-            "short_url": short_url,
-            "value":f"{result.url}"
+    for result in response.results:
+        raw_date = result.published_date
+
+        parsed_date = None
+        if raw_date:
+            try:
+                # Normalize standard ISO strings
+                parsed_date = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))  # noqa: FURB162
+            except (ValueError, TypeError):
+                pass
+        
+        extracted_results.append({
+            "url": result.url,
+            "text": result.text,
+            "title": result.title,
+            "published_date": parsed_date
         })
 
-        source_content.append(f"ID:{short_url}\nContent:\n{result.text}")
+    extracted_results.sort(
+        key=lambda x: (
+            x["published_date"] is not None, 
+            x["published_date"] if x["published_date"] else datetime.min
+        ),
+        reverse=True
+    )
+
+
+    for index, result in enumerate(extracted_results):
+        short_url = f"[{state['id']}-{index}]"
+
+        sources_gathered.append({
+            "short_url": short_url,
+            "value": f"{result['url']}"
+        })
+    
+        date_str = result["published_date"].strftime("%Y-%m-%d") if result["published_date"] else "Unmarked/Unknown"
+
+        source_content.append(
+            f"ID: {short_url}\n"
+            f"URL: {result['url']}\n"
+            f"Date: {date_str}\n"
+            f"Content:\n{result['text']}"
+        )
         
     content = "\n\n".join(source_content)
 
+    summary_llm_prompt = web_summariser_instructions.format(
+        research_topic=state["search_query"],
+        current_date=current_date,
+        sources=content
+    )
     
-    return {
+    summary_llm = ChatGoogleGenerativeAI(
+        model = configurable.query_generator_model,
+        temperature = 1.0,
+        api_key = settings.google_api_key
+    )
+
+    summary = await summary_llm.ainvoke(input=summary_llm_prompt)
+    
+    return { 
         "sources_gathered": sources_gathered, 
-        "search_query":[state["search_query"]]
+        "search_query":[state["search_query"]],
+        "web_research_result" : [summary]
     }  

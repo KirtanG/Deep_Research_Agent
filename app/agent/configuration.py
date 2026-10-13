@@ -9,17 +9,17 @@ class Configuration(BaseModel):
     """The configuration for the agent."""
 
     query_generator_model: str = Field(
-        default="gemini-3.5-flash-lite",
+        default="google_genai:gemini-3.5-flash-lite",
         description="The name of the language model to use for the agent's query generation.",
     )
 
     reflection_model: str = Field(
-        default="gemini-3.5-flash",
+        default="google_genai:gemini-3.5-flash",
         description="The name of the language model to use for the agent's reflection."
     )
 
     answer_model: str = Field(
-        default="gemini-3.8-flash",
+        default="google_genai:gemini-3.8-flash",
         description="The name of the language model to use for the agent's answer."
     )
 

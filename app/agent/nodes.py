@@ -1,7 +1,8 @@
 from datetime import datetime
 
+from langchain.chat_models import init_chat_model
+from langchain.messages import AIMessage
 from langchain_core.runnables import RunnableConfig
-from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
 from langgraph.types import Send
 
 from app.agent.configuration import Configuration
@@ -12,7 +13,7 @@ from app.agent.prompts import (
     reflection_instructions,
     web_summariser_instructions,
 )
-from app.agent.schemas import SearchQueryList
+from app.agent.schemas import Reflection, SearchQueryList
 from app.agent.state import (
     OverallState,
     QueryGenerationState,
@@ -43,7 +44,7 @@ async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGe
     if state.get("initial_search_query_count") is None:
         state['initial_search_query_count'] = configurable.number_of_initial_queries
 
-    search_query_generator = ChatGoogleGenerativeAI(
+    search_query_generator = init_chat_model(
         model = configurable.query_generator_model,
         temperature = 1.0,
         max_retries = 3,
@@ -154,7 +155,7 @@ async def web_research(state: WebSearchState, config: RunnableConfig) -> Overall
         sources=content
     )
     
-    summary_llm = ChatGoogleGenerativeAI(
+    summary_llm = init_chat_model(
         model = configurable.query_generator_model,
         temperature = 1.0,
         api_key = settings.google_api_key
@@ -165,7 +166,7 @@ async def web_research(state: WebSearchState, config: RunnableConfig) -> Overall
     return { 
         "sources_gathered": sources_gathered, 
         "search_query":[state["search_query"]],
-        "web_research_result" : [summary]
+        "web_research_result" : [summary.text]
     }
 
 
@@ -195,16 +196,16 @@ async def reflection(state: OverallState, config: RunnableConfig) -> ReflectionS
         summaries = "\n\n---\n\n".join(state["web_research_result"])
     )
 
-    reflection_llm = ChatGoogleGenerativeAI(
+    reflection_llm = init_chat_model(
         model = configurable.reflection_model,
         temperature = 1.0,
         max_retries = 3,
         api_key = settings.google_api_key
     )
 
-    structured_reflection_llm = reflection_llm.with_structured_output(ReflectionState)
+    structured_reflection_llm = reflection_llm.with_structured_output(Reflection)
 
-    result: ReflectionState = await structured_reflection_llm.ainvoke(formatted_reflection_prompt)  # pyright: ignore[reportAssignmentType]
+    result = await structured_reflection_llm.ainvoke(formatted_reflection_prompt)  # pyright: ignore[reportAssignmentType]
 
     return {
         "is_sufficient": result.is_sufficient,
@@ -273,7 +274,7 @@ async def finalise_answer(state: OverallState, config: RunnableConfig) -> Overal
             summaries = "\n\n---\n\n".join(state["web_research_result"])
         )
     
-    answer_llm = ChatGoogleGenerativeAI(
+    answer_llm = init_chat_model(
         model = configurable.reflection_model,
         temperature = 0,
         max_retries = 3,

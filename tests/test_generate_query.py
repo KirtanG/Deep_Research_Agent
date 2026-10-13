@@ -23,7 +23,7 @@ async def main():
     # 2. Prepare configuration
     config: RunnableConfig = {
         "configurable": {
-            "query_generator_model": "gemini-3.1-flash-lite", # or your configured model
+            "query_generator_model": "google_genai:gemini-3.1-flash-lite", # or your configured model
             "number_of_initial_queries": 3,
         }
     }

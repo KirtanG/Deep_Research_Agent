@@ -93,7 +93,14 @@ Instructions:
 - You have access to all the information gathered from the previous steps.
 - You have access to the user's question.
 - Generate a high-quality answer to the user's question based on the provided summaries and the user's question.
-- Include the sources you used from the Summaries in the answer correctly, use markdown format (e.g. [apnews](https://vertexaisearch.cloud.google.com/id/1-0)). THIS IS A MUST.
+- Include the sources you used from the Summaries in the answer correctly, use the citations from the sources. THIS IS A MUST.
+- When you include sources if there are multiple sources referenced, cite them in the following way:
+
+Correct:
+[0-1][1-1]
+
+Incorrect:
+[0-1,1-1]
 
 User Context:
 - {research_topic}

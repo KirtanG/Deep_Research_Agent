@@ -27,9 +27,6 @@ from app.core.config import get_settings
 async def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
     """LangGraph node that generates search queries based on the User's question.
 
-    Uses Gemini 2.0 Flash to create an optimized search queries for web research based on
-    the User's question.
-
     Args:
         state: Current graph state containing the User's question
         config: Configuration for the runnable, including LLM provider settings
@@ -81,9 +78,7 @@ def continue_to_web_research(state: QueryGenerationState)-> list[Send]:
     ]
 
 async def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState: 
-    """LangGraph node that performs web research using the native Google Search API tool.
-
-    Executes a web search using the native Google Search API tool in combination with Gemini 2.0 Flash.
+    """LangGraph node that performs web research using your configured Search API.
 
     Args:
         state: Current graph state containing the search query and research loop count
@@ -97,34 +92,16 @@ async def web_research(state: WebSearchState, config: RunnableConfig) -> Overall
 
     current_date = get_current_date()
 
-    response = await search_exa(state["search_query"],configurable.number_of_pages)
+    extracted_results = await search_exa(state["search_query"],configurable.number_of_pages)
     
-    extracted_results = []
     sources_gathered = []
     source_content = []
 
-    for result in response.results:
-        raw_date = result.published_date
-
-        parsed_date = None
-        if raw_date:
-            try:
-                # Normalize standard ISO strings
-                parsed_date = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))  # noqa: FURB162
-            except (ValueError, TypeError):
-                pass
-        
-        extracted_results.append({
-            "url": result.url,
-            "text": result.text,
-            "title": result.title,
-            "published_date": parsed_date
-        })
 
     extracted_results.sort(
         key=lambda x: (
-            x["published_date"] is not None, 
-            x["published_date"] if x["published_date"] else datetime.min
+            x.published_date is not None, 
+            x.published_date if x.published_date else datetime.min
         ),
         reverse=True
     )
@@ -135,16 +112,16 @@ async def web_research(state: WebSearchState, config: RunnableConfig) -> Overall
 
         sources_gathered.append({
             "short_url": short_url,
-            "value": f"{result['url']}"
+            "value": f"{result.url}"
         })
     
-        date_str = result["published_date"].strftime("%Y-%m-%d") if result["published_date"] else "Unmarked/Unknown"
+        date_str = result.published_date.strftime("%Y-%m-%d") if result.published_date else "Unmarked/Unknown"
 
         source_content.append(
             f"ID: {short_url}\n"
-            f"URL: {result['url']}\n"
+            f"URL: {result.url}\n"
             f"Date: {date_str}\n"
-            f"Content:\n{result['text']}"
+            f"Content:\n{result.content}"
         )
         
     content = "\n\n".join(source_content)
@@ -283,17 +260,7 @@ async def finalise_answer(state: OverallState, config: RunnableConfig) -> Overal
 
     result = await answer_llm.ainvoke(answer_prompt)
 
-    # Replace the short urls with the original urls and add all used urls to the sources_gathered
-    unique_sources = []
-    for source in state["sources_gathered"]:
-        if source["short_url"] in result.content:
-            result.content = result.content.replace(
-                source["short_url"], source["value"]
-            )
-            unique_sources.append(source)
-
     return {
-        "messages": [AIMessage(content=result.content)],
-        "sources_gathered": unique_sources,
+        "messages": [AIMessage(content=result.content)]
     }
 

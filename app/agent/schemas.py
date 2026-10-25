@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -19,4 +21,24 @@ class Reflection(BaseModel):
     )
     follow_up_queries: list[str] = Field(
         description="A list of follow-up queries to address the knowledge gap."
+    )
+
+class SearchResults(BaseModel):
+    url: str = Field(
+        description="The url of the Search Result."
+    )
+
+    content: str | None = Field(
+        description="The page contents of the url",
+        default=None
+    )
+
+    title: str | None = Field(
+        description="Title of the url",
+        default = None
+    )
+
+    published_date:  datetime | None = Field(
+        description="Published Date of the url",
+        default=None
     )
